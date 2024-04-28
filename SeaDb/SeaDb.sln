@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SeaDb", "SeaDb\SeaDb.csproj", "{22865DFD-9FEC-45AA-99CF-BC55AC52FE75}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SeaDbTestApp", "SeaDbTestApp\SeaDbTestApp.csproj", "{D38F0249-F58B-4DD3-BA13-8B4240A71D07}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22865DFD-9FEC-45AA-99CF-BC55AC52FE75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22865DFD-9FEC-45AA-99CF-BC55AC52FE75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22865DFD-9FEC-45AA-99CF-BC55AC52FE75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22865DFD-9FEC-45AA-99CF-BC55AC52FE75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D38F0249-F58B-4DD3-BA13-8B4240A71D07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D38F0249-F58B-4DD3-BA13-8B4240A71D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D38F0249-F58B-4DD3-BA13-8B4240A71D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D38F0249-F58B-4DD3-BA13-8B4240A71D07}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {22E6D343-8AB1-4090-994F-907BEBDDDA07}
+	EndGlobalSection
+EndGlobal
