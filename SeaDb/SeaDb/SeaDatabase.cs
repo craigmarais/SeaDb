@@ -6,7 +6,7 @@ namespace SeaDb
     public class SeaDatabase : IDisposable
     {
         // the index set is used to identify the file group index ranges, this way we can narrow the index to a smaller subset of files.
-        private readonly SeaFile _indexSet;
+        private readonly SeaMappedFile _indexSet;
         private SeaFileGroup _workingGroup;
         private readonly GPS _gps;
         private string _dbDirectory;
@@ -28,8 +28,8 @@ namespace SeaDb
         {
             if (!_workingGroup.CanFit(data.Length))
             {
-                _workingGroup.Dispose();
-                _workingGroup = new SeaFileGroup(_dbDirectory, Sequences.GetNextGroupKey());
+                //_workingGroup.Dispose();
+                //_workingGroup = new SeaFileGroup(_dbDirectory, Sequences.GetNextGroupKey());
             }
 
             _workingGroup.Write(key, data);

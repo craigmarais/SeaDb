@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using SeaDb;
 using SeaDbTestApp.Structures;
 
@@ -8,52 +9,62 @@ namespace SeaDbTestApp
     {
         public Action OnCompletion { get; set; }
 
-        private readonly Thread _thread;
+        readonly Thread _thread;
+        readonly CancellationToken _token;
         readonly SeaDatabase _database;
+        readonly ulong _insertCount;
+        int _count;
+        int _runnerId;
 
         public unsafe Runner(int runnerId, int insertCount, string table, CancellationToken token)
         {
+            _token = token;
+            _insertCount = (ulong)insertCount;
+            _runnerId = runnerId;
+
             _database = new SeaDatabase(table);
-            int count = 0;
-            new Thread(() =>
+            new Thread(LogPerformance).Start();
+
+            _thread = new Thread(RunThread);
+        }
+
+        private unsafe void RunThread()
+        {
+            ulong messageId = 0;
+            var sw = Stopwatch.StartNew();
+
+            while (!_token.IsCancellationRequested)
             {
-                while (!token.IsCancellationRequested)
+                if (messageId == _insertCount) break;
+
+                var transport = new NewTransport
                 {
-                    if (count > 0)
-                        Console.WriteLine($"{runnerId} = {count:##,###} p/s");
+                    DestinationId = 1,
+                    ShipmentId = 2,
+                    LoadSize = 24_900,
+                    Id = (int)(++messageId)
+                };
+                Span<byte> data = new Span<byte>(&transport, NewTransport.Length);
+                _database.Write(messageId, data);
+                _count++;
+            }
 
-                    count = 0;
-                    Thread.Sleep(1000);
-                }
-            }).Start();
+            _database.Flush();
+            sw.Stop();
+            Console.WriteLine($"{_runnerId} finished writing {_insertCount:##,###} messages in {sw.ElapsedMilliseconds}ms :)");
+            OnCompletion?.Invoke();
+        }
 
-
-            _thread = new Thread(() =>
+        private void LogPerformance(object? obj)
+        {
+            while (!_token.IsCancellationRequested)
             {
-                int messageId = 0;
-                var sw = Stopwatch.StartNew();
+                if (_count > 0)
+                    Console.WriteLine($"{_runnerId} = {_count:##,###} p/s");
 
-                while (!token.IsCancellationRequested)
-                {
-                    if (messageId == insertCount) break;
-                    
-                    var transport = new NewTransport
-                    {
-                        DestinationId = 1,
-                        ShipmentId = 2,
-                        LoadSize = 24_900,
-                        Id = ++messageId
-                    };
-                    Span<byte> data = new Span<byte>(&transport, NewTransport.Length);
-                    _database.Write(Utilities.NextMessageSeq(), data);
-                    count++;
-                }
-
-                _database.Flush();
-                sw.Stop();
-                Console.WriteLine($"{runnerId} finished writing {insertCount:##,###} messages in {sw.ElapsedMilliseconds}ms :)");
-                OnCompletion?.Invoke();
-            });
+                _count = 0;
+                Thread.Sleep(1000);
+            }
         }
 
         public void Run()
@@ -61,19 +72,10 @@ namespace SeaDbTestApp
             _thread.Start();
         }
 
-        public List<NewTransport> GetAll(string tableName)
+        public Span<NewTransport> GetAll(string tableName)
         {
-            var result = new List<NewTransport>();
             var data = _database.ReadFrom(0);
-            int offset = 0;
-
-            while (offset < data.Length)
-            {
-                result.Add(new NewTransport(data[offset..].Span));
-                offset += NewTransport.Length;
-            }
-
-            return result;
+            return MemoryMarshal.Cast<byte, NewTransport>(data.Span);
         }
 
         public void Dispose()

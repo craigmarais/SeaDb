@@ -11,9 +11,6 @@ namespace SeaDbTestApp.Structures
 
         public static int Length => sizeof(Message<T>);
 
-        public Message()
-        { }
-
         public Message(Span<byte> data)
         {
             fixed (byte* ptr = data)

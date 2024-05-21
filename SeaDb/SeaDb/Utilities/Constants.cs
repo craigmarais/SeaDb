@@ -2,6 +2,6 @@
 {
     public static class Constants
     {
-        public const int MAX_FILE_SIZE = 1_999_990_000;
+        public const long MAX_FILE_SIZE = 6 * 1024L * 1024L * 1024L;
     }
 }

@@ -12,9 +12,6 @@ namespace SeaDbTestApp.Structures
 
         public static int Length => sizeof(TravelCost);
 
-        public TravelCost()
-        { }
-
         public TravelCost(Span<byte> data)
         {
             fixed (byte* ptr = data)

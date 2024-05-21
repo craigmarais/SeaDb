@@ -13,9 +13,6 @@ namespace SeaDbTestApp.Structures
 
         public static int Length => sizeof(NewTransport);
 
-        public NewTransport()
-        { }
-
         public NewTransport(Span<byte> data)
         {
             fixed (byte* ptr = data)
