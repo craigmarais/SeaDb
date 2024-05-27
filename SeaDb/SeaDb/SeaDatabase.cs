@@ -7,39 +7,33 @@ namespace SeaDb
     {
         // the index set is used to identify the file group index ranges, this way we can narrow the index to a smaller subset of files.
         private readonly SeaMappedFile _indexSet;
-        private SeaFileGroup _workingGroup;
+        private readonly SeaFileGroup _workingGroup;
         private readonly GPS _gps;
-        private string _dbDirectory;
+        private readonly string _dbDirectory;
 
-        public SeaDatabase(string databaseName)
+        public SeaDatabase(string table)
         {
-            _dbDirectory = Path.Join(AppContext.BaseDirectory, databaseName);
+            _dbDirectory = Path.Join(AppContext.BaseDirectory, table);
             if (!Directory.Exists(_dbDirectory))
                 Directory.CreateDirectory(_dbDirectory);
 
             _gps = new GPS();
-            //_indexSet = new SeaFile("index_set", "cist");
-            //InitializeIndexCache();
+            _indexSet = new SeaMappedFile("index_set", "cist");
+            InitializeIndexCache();
             _workingGroup = new SeaFileGroup(_dbDirectory, Sequences.GetNextGroupKey());
         }
 
-
         public void Write(ulong key, Span<byte> data)
         {
-            if (!_workingGroup.CanFit(data.Length))
-            {
-                //_workingGroup.Dispose();
-                //_workingGroup = new SeaFileGroup(_dbDirectory, Sequences.GetNextGroupKey());
-            }
-
             _workingGroup.Write(key, data);
         }
 
-        public Memory<byte> ReadFrom(ulong key)
+        public List<Memory<byte>> ReadFrom(ulong key)
         {
             if (key == 0)
                 key = 1;
-            return _workingGroup.ReadFrom(key);
+
+            return _workingGroup.ReadFrom(key).ToList();
         }
 
         private unsafe void InitializeIndexCache()
@@ -51,8 +45,7 @@ namespace SeaDb
             {
                 var index = new IndexSetElement(indexSetBytes[^length..]);
                 _gps.PlotCordinate(index.FirstKey, index.GroupKey);
-                length -= sizeof(IndexSetElement);
-                
+                length -= sizeof(IndexSetElement);                
             }
         }
 
@@ -63,7 +56,7 @@ namespace SeaDb
 
         public void Dispose()
         {
-            //_indexSet.Dispose();
+            _indexSet.Dispose();
             _workingGroup.Dispose();
         }
     }

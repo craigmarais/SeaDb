@@ -10,8 +10,8 @@ namespace SeaDbTestApp
         public Action OnCompletion { get; set; }
 
         readonly Thread _thread;
+        SeaDatabase _db;
         readonly CancellationToken _token;
-        readonly SeaDatabase _database;
         readonly ulong _insertCount;
         int _count;
         int _runnerId;
@@ -21,10 +21,9 @@ namespace SeaDbTestApp
             _token = token;
             _insertCount = (ulong)insertCount;
             _runnerId = runnerId;
+            _db = new SeaDatabase(table);
 
-            _database = new SeaDatabase(table);
             new Thread(LogPerformance).Start();
-
             _thread = new Thread(RunThread);
         }
 
@@ -45,11 +44,11 @@ namespace SeaDbTestApp
                     Id = (int)(++messageId)
                 };
                 Span<byte> data = new Span<byte>(&transport, NewTransport.Length);
-                _database.Write(messageId, data);
+                _db.Write(Utilities.NextMessageSeq(), data);
+
                 _count++;
             }
 
-            _database.Flush();
             sw.Stop();
             Console.WriteLine($"{_runnerId} finished writing {_insertCount:##,###} messages in {sw.ElapsedMilliseconds}ms :)");
             OnCompletion?.Invoke();
@@ -72,15 +71,20 @@ namespace SeaDbTestApp
             _thread.Start();
         }
 
-        public Span<NewTransport> GetAll(string tableName)
+        public List<NewTransport> GetAll(string tableName)
         {
-            var data = _database.ReadFrom(0);
-            return MemoryMarshal.Cast<byte, NewTransport>(data.Span);
+            var result = new List<NewTransport>();
+            var data = _db.ReadFrom(0);
+            foreach(var item in data)
+            {
+                result.AddRange(MemoryMarshal.Cast<byte, NewTransport>(item.Span).ToArray());
+            }
+            return result;
         }
 
         public void Dispose()
         {
-            _database.Dispose();
+            _db.Dispose();
         }
     }
 }

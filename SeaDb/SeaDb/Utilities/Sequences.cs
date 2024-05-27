@@ -16,6 +16,5 @@ namespace SeaDb.Utilities
         {
             return Interlocked.Increment(ref _messageKey);
         }
-
     }
 }

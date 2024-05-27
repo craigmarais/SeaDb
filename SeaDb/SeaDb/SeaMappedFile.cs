@@ -1,17 +1,13 @@
 ﻿using SeaDb.Utilities;
-using System;
-using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SeaDb
 {
     public class SeaMappedFile
     {
         private readonly string _file;
-
+        private bool _canFlush;
+        private bool _flushing;
         public long Position;
         public long Length;
 
@@ -21,9 +17,7 @@ namespace SeaDb
         public SeaMappedFile(string fileName, string fileExtension)
         {
             _file = $"{fileName}.{fileExtension}";
-            _mmf = MemoryMappedFile.CreateFromFile(_file, FileMode.Create, null, Constants.MAX_FILE_SIZE, MemoryMappedFileAccess.ReadWrite);
-            _stream = _mmf.CreateViewStream();
-            Length = _stream.Length;
+            InitializeFile(Constants.MAX_FILE_SIZE);
         }
 
         public bool IsOpen()
@@ -33,8 +27,38 @@ namespace SeaDb
 
         public void Write(Span<byte> data)
         {
+            if (data.Length + Position > Length)
+            {
+                GrowFile();
+            }
+
             _stream.Write(data);
             Position += data.Length;
+        }
+
+        private void GrowFile()
+        {
+            Flush();
+            _canFlush = false;
+
+            while (_flushing)
+            { }
+
+            _stream.Dispose();
+            _mmf.Dispose();
+
+            _mmf = MemoryMappedFile.CreateFromFile(_file, FileMode.OpenOrCreate, _file[^5..], Length + Constants.MAX_FILE_SIZE, MemoryMappedFileAccess.ReadWrite);
+            _stream = _mmf.CreateViewStream();
+            Length = _stream.Length;
+            _canFlush = true;
+        }
+
+        private void InitializeFile(long capacity)
+        {
+            _mmf = MemoryMappedFile.CreateFromFile(_file, FileMode.OpenOrCreate, _file[^5..], capacity, MemoryMappedFileAccess.ReadWrite);
+            _stream = _mmf.CreateViewStream();
+            Length = _stream.Length;
+            _canFlush = true;
         }
 
         public int Read(byte[] buffer)
@@ -44,6 +68,9 @@ namespace SeaDb
 
         public int Read(byte[] buffer, int position)
         {
+            if (Position <= position)
+                return 0;
+
             using (var stream = _mmf.CreateViewAccessor(position, 0))
             {
                 return stream.ReadArray(0, buffer, 0, (int)(Position - position));
@@ -52,7 +79,12 @@ namespace SeaDb
 
         public void Flush()
         {
-            _stream.Flush();
+            if (_canFlush)
+            {
+                _flushing = true;
+                _stream.Flush();
+                _flushing = false;
+            }
         }
 
         public void Dispose()

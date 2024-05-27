@@ -28,14 +28,19 @@ namespace SeaDb
             _fileSize += data.Length;
         }
 
-        public Memory<byte> ReadFrom(ulong key)
+        public IEnumerable<Memory<byte>> ReadFrom(ulong key)
         {
-            var dataIndex = DataIndexOfKey(key);
-            var bufferSize = _dataFile.Length - dataIndex;
-            var buffer = new byte[bufferSize];
-            var length = _dataFile.Read(buffer, (int)dataIndex);
+            var dataIndex = key == 1 ? 0 : DataIndexOfKey(key);
+            var bufferSize = _dataFile.Position - dataIndex;
 
-            return buffer.AsMemory()[..length];
+            while (dataIndex < _dataFile.Position)
+            {
+                var segmentSize = Array.MaxLength - bufferSize < 1 ? Array.MaxLength : bufferSize;
+                var buffer = new byte[segmentSize];
+                var length = _dataFile.Read(buffer, (int)dataIndex);
+                yield return buffer.AsMemory()[..length];
+                dataIndex += segmentSize;
+            }
         }
 
         public bool CanFit(int length)

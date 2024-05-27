@@ -8,8 +8,8 @@ Runner runner = new Runner(1, insertCount, tableName, cts.Token);
 runner.OnCompletion = () =>
 {
     var messages = runner.GetAll(tableName);
-    Console.WriteLine(messages.Length != insertCount
-        ? $"Runner 1 failed to insert all records: expected {insertCount} got {messages.Length}"
+    Console.WriteLine(messages.Count != insertCount
+        ? $"Runner 1 failed to insert all records: expected {insertCount} got {messages.Count}"
         : "Runner 1 Successfully inserted all records.");
 };
 
