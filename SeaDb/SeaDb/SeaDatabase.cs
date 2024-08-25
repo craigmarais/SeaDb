@@ -18,7 +18,7 @@ namespace SeaDb
                 Directory.CreateDirectory(_dbDirectory);
 
             _gps = new GPS();
-            _indexSet = new SeaMappedFile("index_set", "cist");
+            _indexSet = new SeaMappedFile($"{_dbDirectory}/index_set_{Sequences.GetNextIndexKey()}", "cist");
             InitializeIndexCache();
             _workingGroup = new SeaFileGroup(_dbDirectory, Sequences.GetNextGroupKey());
         }

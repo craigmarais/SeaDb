@@ -9,7 +9,7 @@ namespace SeaDbTestApp
     {
         public Action OnCompletion { get; set; }
 
-        readonly Thread _thread;
+        //readonly Thread _thread;
         SeaDatabase _db;
         readonly CancellationToken _token;
         readonly ulong _insertCount;
@@ -24,31 +24,32 @@ namespace SeaDbTestApp
             _db = new SeaDatabase(table);
 
             new Thread(LogPerformance).Start();
-            _thread = new Thread(RunThread);
+            //_thread = new Thread(RunThread);
         }
 
-        private unsafe void RunThread()
+        public unsafe void RunThread()
         {
             ulong messageId = 0;
             var sw = Stopwatch.StartNew();
 
+            var transport = new NewTransport
+            {
+                DestinationId = 1,
+                ShipmentId = 2,
+                LoadSize = 24_900,
+                Id = 0
+            };
             while (!_token.IsCancellationRequested)
             {
                 if (messageId == _insertCount) break;
 
-                var transport = new NewTransport
-                {
-                    DestinationId = 1,
-                    ShipmentId = 2,
-                    LoadSize = 24_900,
-                    Id = (int)(++messageId)
-                };
+                transport.Id = (int)(++messageId);
                 Span<byte> data = new Span<byte>(&transport, NewTransport.Length);
                 _db.Write(Utilities.NextMessageSeq(), data);
 
                 _count++;
             }
-
+            throw new Exception("An expected exception has occurred, please dont panic.");
             sw.Stop();
             Console.WriteLine($"{_runnerId} finished writing {_insertCount:##,###} messages in {sw.ElapsedMilliseconds}ms :)");
             OnCompletion?.Invoke();
@@ -68,7 +69,8 @@ namespace SeaDbTestApp
 
         public void Run()
         {
-            _thread.Start();
+            //_thread.Start();
+            RunThread();
         }
 
         public List<NewTransport> GetAll(string tableName)

@@ -1,11 +1,15 @@
-﻿using System.Dynamic;
-
-namespace SeaDb.Utilities
+﻿namespace SeaDb.Utilities
 {
-    public static class Sequences
+    internal static class Sequences
     {
+        private static ulong _indexKey;
         private static ulong _groupKey;
         private static ulong _messageKey;
+
+        public static ulong GetNextIndexKey()
+        {
+            return Interlocked.Increment(ref _indexKey);
+        }
 
         public static ulong GetNextGroupKey()
         {

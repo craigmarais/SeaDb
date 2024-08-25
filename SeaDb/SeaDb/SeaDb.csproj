@@ -5,10 +5,26 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>CMarais</Authors>
+    <Description>A multithreaded, indexed, local disk database</Description>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageIcon>CDB_Icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/craigmarais/SeaDb</RepositoryUrl>
+    <FileVersion></FileVersion>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <Version>1.0.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="SeaFile.cs~RF69a2c789.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\cmmrt\Pictures\CDB_Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ namespace SeaDb
 {
     public class SeaMappedFile
     {
+        private readonly string _filePath;
         private readonly string _file;
         private bool _canFlush;
         private bool _flushing;
@@ -13,10 +14,12 @@ namespace SeaDb
 
         private MemoryMappedFile _mmf;
         private MemoryMappedViewStream _stream;
+        private MemoryMappedViewAccessor _accessor;
 
         public SeaMappedFile(string fileName, string fileExtension)
         {
-            _file = $"{fileName}.{fileExtension}";
+            _filePath = $"{fileName}.{fileExtension}";
+            _file = _filePath.Substring(_filePath.LastIndexOf('/') + 1);
             InitializeFile(Constants.MAX_FILE_SIZE);
         }
 
@@ -34,6 +37,7 @@ namespace SeaDb
 
             _stream.Write(data);
             Position += data.Length;
+            _accessor.Write(0, Position);
         }
 
         private void GrowFile()
@@ -47,16 +51,18 @@ namespace SeaDb
             _stream.Dispose();
             _mmf.Dispose();
 
-            _mmf = MemoryMappedFile.CreateFromFile(_file, FileMode.OpenOrCreate, _file[^5..], Length + Constants.MAX_FILE_SIZE, MemoryMappedFileAccess.ReadWrite);
-            _stream = _mmf.CreateViewStream();
+            _mmf = MemoryMappedFile.CreateFromFile(_filePath, FileMode.OpenOrCreate, _file, Length + Constants.MAX_FILE_SIZE, MemoryMappedFileAccess.ReadWrite);
+            _stream = _mmf.CreateViewStream(8, 0);
+            _accessor = _mmf.CreateViewAccessor(0, 8);
             Length = _stream.Length;
             _canFlush = true;
         }
 
         private void InitializeFile(long capacity)
         {
-            _mmf = MemoryMappedFile.CreateFromFile(_file, FileMode.OpenOrCreate, _file[^5..], capacity, MemoryMappedFileAccess.ReadWrite);
-            _stream = _mmf.CreateViewStream();
+            _mmf = MemoryMappedFile.CreateFromFile(_filePath, FileMode.OpenOrCreate, _file, capacity, MemoryMappedFileAccess.ReadWrite);
+            _stream = _mmf.CreateViewStream(8, 0);
+            _accessor = _mmf.CreateViewAccessor(0, 8);
             Length = _stream.Length;
             _canFlush = true;
         }
